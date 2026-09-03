@@ -18,6 +18,7 @@ import { LevelBadge } from "@/components/gamification/LevelBadge";
 import { TaskHeatIndicator } from "@/components/intelligence/TaskHeatIndicator";
 import { InterventionModal } from "@/components/intelligence/InterventionModal";
 import { AnalyticsWidget } from "@/components/intelligence/AnalyticsWidget";
+import { CalendarView } from "@/components/calendar/CalendarView";
 import { XP_VALUES } from "@/lib/gamification";
 import { INTERVENTION_THRESHOLD, Task, Subtask } from "@/lib/intelligence";
 export default function Dashboard() {
@@ -26,7 +27,10 @@ export default function Dashboard() {
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskTime, setNewTaskTime] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState(new Date().toISOString().slice(0, 10));
+  const [newTaskPriority, setNewTaskPriority] = useState("Medium");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeView, setActiveView] = useState("Dashboard");
 
   const [interventionTask, setInterventionTask] = useState<Task | null>(null);
 
@@ -36,9 +40,11 @@ export default function Dashboard() {
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
-    addTask(newTaskTitle, newTaskTime, "Medium");
+    addTask(newTaskTitle, newTaskTime, newTaskPriority, newTaskDate);
     setNewTaskTitle("");
     setNewTaskTime("");
+    setNewTaskDate(new Date().toISOString().slice(0, 10));
+    setNewTaskPriority("Medium");
     setIsDialogOpen(false);
   };
 
@@ -91,8 +97,8 @@ export default function Dashboard() {
             { name: "Analytics", icon: BarChart2 },
             { name: "Settings", icon: Settings },
           ].map((item) => (
-            <div key={item.name} className="relative group w-full flex justify-center">
-              <Button variant={item.name === "Dashboard" ? "secondary" : "ghost"} size="icon" className="h-12 w-12 rounded-xl">
+              <div key={item.name} className="relative group w-full flex justify-center">
+              <Button variant={activeView === item.name ? "secondary" : "ghost"} size="icon" className="h-12 w-12 rounded-xl" onClick={() => setActiveView(item.name)}>
                 <item.icon className="h-5 w-5" />
                 <span className="sr-only">{item.name}</span>
               </Button>
@@ -148,6 +154,16 @@ export default function Dashboard() {
                     className="col-span-3" 
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="date" className="text-right">Date</Label>
+                  <Input id="date" type="date" value={newTaskDate} onChange={(e) => setNewTaskDate(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="priority" className="text-right">Priority</Label>
+                  <select id="priority" value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value)} className="col-span-3 h-9 rounded-md border bg-background px-3 text-sm">
+                    <option>Low</option><option>Medium</option><option>High</option>
+                  </select>
+                </div>
               </div>
               <DialogFooter>
                 <Button onClick={handleAddTask}>Add Task</Button>
@@ -157,7 +173,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-6 space-y-6">
+        <div className={`flex-1 overflow-auto p-6 space-y-6 ${activeView === "Calendar" ? "hidden" : ""}`}>
           {gamificationLoaded && (
             <div className="glass-panel p-6 rounded-3xl mb-6">
               <XPBar xp={gamificationState.xp} level={gamificationState.level} />
@@ -282,6 +298,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        {activeView === "Calendar" && <div className="flex-1 overflow-auto p-6"><CalendarView tasks={tasks} /></div>}
       </main>
       <AchievementModal 
         unlockedBadgeIds={newlyUnlockedBadges} 

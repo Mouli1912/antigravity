@@ -6,6 +6,7 @@ const DEFAULT_TASKS: Task[] = [
     id: 1, 
     title: "Review Q3 Marketing Strategy", 
     time: "10:00 AM", 
+    date: new Date().toISOString().slice(0, 10),
     priority: "High", 
     completed: false,
     createdAt: new Date().toISOString(),
@@ -18,6 +19,7 @@ const DEFAULT_TASKS: Task[] = [
     id: 2, 
     title: "Build portfolio website", 
     time: "1:30 PM", 
+    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     priority: "Medium", 
     completed: false,
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
@@ -30,6 +32,7 @@ const DEFAULT_TASKS: Task[] = [
     id: 3, 
     title: "Team Weekly Sync", 
     time: "3:00 PM", 
+    date: new Date().toISOString().slice(0, 10),
     priority: "High", 
     completed: false,
     createdAt: new Date().toISOString(),
@@ -57,7 +60,7 @@ export function useTasks() {
         const parsed = JSON.parse(savedTasks);
         // Update ignore scores upon load
         const updated = updateTaskIgnoreScores(parsed);
-        setTasks(updated);
+        setTasks(updated.map(task => ({ ...task, date: task.date || task.createdAt.slice(0, 10) })));
       } catch {
         setTasks(DEFAULT_TASKS);
       }
@@ -81,11 +84,12 @@ export function useTasks() {
     }
   }, [tasks, recoveredTasksCount, isLoaded]);
 
-  const addTask = (title: string, time: string, priority: string = "Medium") => {
+  const addTask = (title: string, time: string, priority: string = "Medium", date?: string) => {
     const newTask: Task = {
       id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1,
       title,
       time: time || "Anytime",
+      date: date || new Date().toISOString().slice(0, 10),
       priority,
       completed: false,
       createdAt: new Date().toISOString(),

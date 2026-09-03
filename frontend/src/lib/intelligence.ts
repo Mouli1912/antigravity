@@ -8,6 +8,7 @@ export interface Task {
   id: number;
   title: string;
   time: string;
+  date?: string;
   priority: string;
   completed: boolean;
   createdAt: string;
